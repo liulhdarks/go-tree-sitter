@@ -1,8 +1,6 @@
 #ifndef TREE_SITTER_TREE_H_
 #define TREE_SITTER_TREE_H_
 
-#include "./subtree.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

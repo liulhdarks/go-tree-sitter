@@ -98,43 +98,34 @@ void ts_tree_cursor_delete(TSTreeCursor *_self) {
 
 // TSTreeCursor - walking the tree
 
-TreeCursorStep ts_tree_cursor_goto_first_child_internal(TSTreeCursor *_self) {
+bool ts_tree_cursor_goto_first_child(TSTreeCursor *_self) {
   TreeCursor *self = (TreeCursor *)_self;
-  bool visible;
-  TreeCursorEntry entry;
-  CursorChildIterator iterator = ts_tree_cursor_iterate_children(self);
-  while (ts_tree_cursor_child_iterator_next(&iterator, &entry, &visible)) {
-    if (visible) {
-      array_push(&self->stack, entry);
-      return TreeCursorStepVisible;
-    }
-    if (ts_subtree_visible_child_count(*entry.subtree) > 0) {
-      array_push(&self->stack, entry);
-      return TreeCursorStepHidden;
-    }
-  }
-  return TreeCursorStepNone;
-}
 
-bool ts_tree_cursor_goto_first_child(TSTreeCursor *self) {
-  for (;;) {
-    switch (ts_tree_cursor_goto_first_child_internal(self)) {
-      case TreeCursorStepHidden:
-        continue;
-      case TreeCursorStepVisible:
+  bool did_descend;
+  do {
+    did_descend = false;
+
+    bool visible;
+    TreeCursorEntry entry;
+    CursorChildIterator iterator = ts_tree_cursor_iterate_children(self);
+    while (ts_tree_cursor_child_iterator_next(&iterator, &entry, &visible)) {
+      if (visible) {
+        array_push(&self->stack, entry);
         return true;
-      default:
-        return false;
+      }
+
+      if (ts_subtree_visible_child_count(*entry.subtree) > 0) {
+        array_push(&self->stack, entry);
+        did_descend = true;
+        break;
+      }
     }
-  }
+  } while (did_descend);
+
   return false;
 }
 
-static inline int64_t ts_tree_cursor_goto_first_child_for_byte_and_point(
-  TSTreeCursor *_self,
-  uint32_t goal_byte,
-  TSPoint goal_point
-) {
+int64_t ts_tree_cursor_goto_first_child_for_byte(TSTreeCursor *_self, uint32_t goal_byte) {
   TreeCursor *self = (TreeCursor *)_self;
   uint32_t initial_size = self->stack.size;
   uint32_t visible_child_index = 0;
@@ -147,8 +138,48 @@ static inline int64_t ts_tree_cursor_goto_first_child_for_byte_and_point(
     TreeCursorEntry entry;
     CursorChildIterator iterator = ts_tree_cursor_iterate_children(self);
     while (ts_tree_cursor_child_iterator_next(&iterator, &entry, &visible)) {
-      Length entry_end = length_add(entry.position, ts_subtree_size(*entry.subtree));
-      bool at_goal = entry_end.bytes >= goal_byte && point_gte(entry_end.extent, goal_point);
+      uint32_t end_byte = entry.position.bytes + ts_subtree_size(*entry.subtree).bytes;
+      bool at_goal = end_byte >= goal_byte;
+      uint32_t visible_child_count = ts_subtree_visible_child_count(*entry.subtree);
+
+      if (at_goal) {
+        if (visible) {
+          array_push(&self->stack, entry);
+          return visible_child_index;
+        }
+
+        if (visible_child_count > 0) {
+          array_push(&self->stack, entry);
+          did_descend = true;
+          break;
+        }
+      } else if (visible) {
+        visible_child_index++;
+      } else {
+        visible_child_index += visible_child_count;
+      }
+    }
+  } while (did_descend);
+
+  self->stack.size = initial_size;
+  return -1;
+}
+
+int64_t ts_tree_cursor_goto_first_child_for_point(TSTreeCursor *_self, TSPoint goal_point) {
+  TreeCursor *self = (TreeCursor *)_self;
+  uint32_t initial_size = self->stack.size;
+  uint32_t visible_child_index = 0;
+
+  bool did_descend;
+  do {
+    did_descend = false;
+
+    bool visible;
+    TreeCursorEntry entry;
+    CursorChildIterator iterator = ts_tree_cursor_iterate_children(self);
+    while (ts_tree_cursor_child_iterator_next(&iterator, &entry, &visible)) {
+      TSPoint end_point = point_add(entry.position.extent, ts_subtree_size(*entry.subtree).extent);
+      bool at_goal = point_gte(end_point, goal_point);
       uint32_t visible_child_count = ts_subtree_visible_child_count(*entry.subtree);
       if (at_goal) {
         if (visible) {
@@ -172,15 +203,7 @@ static inline int64_t ts_tree_cursor_goto_first_child_for_byte_and_point(
   return -1;
 }
 
-int64_t ts_tree_cursor_goto_first_child_for_byte(TSTreeCursor *self, uint32_t goal_byte) {
-  return ts_tree_cursor_goto_first_child_for_byte_and_point(self, goal_byte, POINT_ZERO);
-}
-
-int64_t ts_tree_cursor_goto_first_child_for_point(TSTreeCursor *self, TSPoint goal_point) {
-  return ts_tree_cursor_goto_first_child_for_byte_and_point(self, 0, goal_point);
-}
-
-TreeCursorStep ts_tree_cursor_goto_next_sibling_internal(TSTreeCursor *_self) {
+bool ts_tree_cursor_goto_next_sibling(TSTreeCursor *_self) {
   TreeCursor *self = (TreeCursor *)_self;
   uint32_t initial_size = self->stack.size;
 
@@ -198,30 +221,19 @@ TreeCursorStep ts_tree_cursor_goto_next_sibling_internal(TSTreeCursor *_self) {
     while (ts_tree_cursor_child_iterator_next(&iterator, &entry, &visible)) {
       if (visible) {
         array_push(&self->stack, entry);
-        return TreeCursorStepVisible;
+        return true;
       }
 
       if (ts_subtree_visible_child_count(*entry.subtree)) {
         array_push(&self->stack, entry);
-        return TreeCursorStepHidden;
+        ts_tree_cursor_goto_first_child(_self);
+        return true;
       }
     }
   }
 
   self->stack.size = initial_size;
-  return TreeCursorStepNone;
-}
-
-bool ts_tree_cursor_goto_next_sibling(TSTreeCursor *self) {
-  switch (ts_tree_cursor_goto_next_sibling_internal(self)) {
-    case TreeCursorStepHidden:
-      ts_tree_cursor_goto_first_child(self);
-      return true;
-    case TreeCursorStepVisible:
-      return true;
-    default:
-      return false;
-  }
+  return false;
 }
 
 bool ts_tree_cursor_goto_parent(TSTreeCursor *_self) {
