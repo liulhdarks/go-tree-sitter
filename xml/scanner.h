@@ -130,13 +130,13 @@ static bool scan_comment(TSLexer *lexer) {
 }
 
 /// Define the boilerplate functions of the scanner
-#define SCANNER_BOILERPLATE(name) \
-    void *tree_sitter_##name##_external_scanner_create() { return NULL; } \
-    \
-    void tree_sitter_##name##_external_scanner_destroy(void *payload) {} \
-    \
-    void tree_sitter_##name##_external_scanner_reset(void *payload) {} \
-    \
-    unsigned tree_sitter_##name##_external_scanner_serialize(void *payload, char *buffer) { return 0; } \
-    \
-    void tree_sitter_##name##_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {}
+//#define SCANNER_BOILERPLATE(name) \
+//    void *tree_sitter_##name##_external_scanner_create() { return NULL; } \
+//    \
+//    void tree_sitter_##name##_external_scanner_destroy(void *payload) {} \
+//    \
+//    void tree_sitter_##name##_external_scanner_reset(void *payload) {} \
+//    \
+//    unsigned tree_sitter_##name##_external_scanner_serialize(void *payload, char *buffer) { return 0; } \
+//    \
+//    void tree_sitter_##name##_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {}

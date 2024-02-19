@@ -23,7 +23,11 @@ func TestGrammar(t *testing.T) {
 class MY_DLL_API MyInterface {
 public:
     virtual ~MyInterface() {}
-    virtual void DoSomething() = 0; // 纯虚函数
+    virtual void DoSomething() = 0; 
+};
+struct DLL_EXPORT MyStruct {
+    int field1;
+    wchar_t* name;
 };
 `), cpp.GetLanguage())
     assert.NoError(err)
