@@ -4,9 +4,6 @@
 #include <string.h>
 #include <wctype.h>
 
-#if __STDC_VERSION__ < 201112L
-#define static_assert(cnd, msg) assert(cnd && msg)
-#endif // __STDC_VERSION__ < 201112L
 
 enum TokenType { RAW_STRING_DELIMITER, RAW_STRING_CONTENT };
 
@@ -127,8 +124,7 @@ extern "C" {
     }
 
     unsigned tree_sitter_cpp_external_scanner_serialize(void *payload, char *buffer) {
-        static_assert(MAX_DELIMITER_LENGTH * sizeof(wchar_t) < TREE_SITTER_SERIALIZATION_BUFFER_SIZE,
-                      "Serialized delimiter is too long!");
+        assert(MAX_DELIMITER_LENGTH * sizeof(wchar_t) < TREE_SITTER_SERIALIZATION_BUFFER_SIZE && "Serialized delimiter is too long!");
 
         Scanner *scanner = (Scanner *)payload;
         size_t size = scanner->delimiter_length * sizeof(wchar_t);
