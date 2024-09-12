@@ -1,0 +1,176 @@
+cmake_minimum_required(VERSION 3.28)
+project(go_tree_sitter)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(.)
+include_directories(bash)
+include_directories(c)
+include_directories(cpp)
+include_directories(csharp)
+include_directories(css)
+include_directories(cue)
+include_directories(dockerfile)
+include_directories(elixir)
+include_directories(elm)
+include_directories(golang)
+include_directories(hcl)
+include_directories(html)
+include_directories(java)
+include_directories(javascript)
+include_directories(kotlin)
+include_directories(lua)
+include_directories(ocaml)
+include_directories(php)
+include_directories(protobuf)
+include_directories(python)
+include_directories(ruby)
+include_directories(rust)
+include_directories(scala)
+include_directories(svelte)
+include_directories(toml)
+include_directories(typescript/tsx)
+include_directories(typescript/typescript)
+include_directories(vue)
+include_directories(xml)
+include_directories(yaml)
+
+add_executable(go_tree_sitter
+        bash/parser.c
+        bash/parser.h
+        bash/scanner.cc
+        c/parser.c
+        c/parser.h
+        cpp/parser.c
+        cpp/parser.h
+        cpp/scanner.cc
+        csharp/parser.c
+        csharp/parser.h
+        csharp/scanner.c
+        css/parser.c
+        css/parser.h
+        css/scanner.c
+        cue/parser.c
+        cue/parser.h
+        cue/scanner.c
+        dockerfile/parser.c
+        dockerfile/parser.h
+        elixir/parser.c
+        elixir/parser.h
+        elixir/scanner.cc
+        elm/parser.c
+        elm/parser.h
+        elm/scanner.cc
+        golang/parser.c
+        golang/parser.h
+        hcl/parser.c
+        hcl/parser.h
+        hcl/scanner.cc
+        html/parser.c
+        html/parser.h
+        html/scanner.cc
+        html/tag.h
+        java/parser.c
+        java/parser.h
+        javascript/parser.c
+        javascript/parser.h
+        javascript/scanner.c
+        kotlin/parser.c
+        kotlin/parser.h
+        kotlin/scanner.c
+        lua/parser.c
+        lua/parser.h
+        lua/scanner.c
+        ocaml/parser.c
+        ocaml/parser.h
+        ocaml/scanner.cc
+        ocaml/scanner.h
+        php/parser.c
+        php/parser.h
+        php/scanner.cc
+        protobuf/parser.c
+        protobuf/parser.h
+        python/parser.c
+        python/parser.h
+        python/scanner.cc
+        ruby/parser.c
+        ruby/parser.h
+        ruby/scanner.cc
+        rust/parser.c
+        rust/parser.h
+        rust/scanner.c
+        scala/parser.c
+        scala/parser.h
+        scala/scanner.c
+        scala/stack.h
+        svelte/allocator.h
+        svelte/ekstring.h
+        svelte/parser.c
+        svelte/parser.h
+        svelte/scanner.c
+        svelte/tag.h
+        svelte/uthash.h
+        svelte/vc_vector.h
+        toml/parser.c
+        toml/parser.h
+        toml/scanner.c
+        typescript/tsx/parser.c
+        typescript/tsx/parser.h
+        typescript/tsx/scanner.c
+        typescript/tsx/scanner.h
+        typescript/typescript/parser.c
+        typescript/typescript/parser.h
+        typescript/typescript/scanner.c
+        typescript/typescript/scanner.h
+        vue/html_scanner.cc
+        vue/parser.c
+        vue/parser.h
+        vue/scanner.cc
+        vue/tag.h
+        xml/parser.c
+        xml/parser.h
+        xml/scanner.c
+        xml/scanner.h
+        yaml/parser.c
+        yaml/parser.h
+        yaml/scanner.cc
+        alloc.c
+        alloc.h
+        api.h
+        array.h
+        atomic.h
+        bits.h
+        clock.h
+        error_costs.h
+        get_changed_ranges.c
+        get_changed_ranges.h
+        host.h
+        language.c
+        language.h
+        length.h
+        lexer.c
+        lexer.h
+        main.cpp
+        main.h
+        node.c
+        parser.c
+        parser.h
+        point.h
+        ptypes.h
+        query.c
+        reduce_action.h
+        reusable_node.h
+        stack.c
+        stack.h
+        subtree.c
+        subtree.h
+        tree.c
+        tree.h
+        tree_cursor.c
+        tree_cursor.h
+        umachine.h
+        unicode.h
+        urename.h
+        utf.h
+        utf16.h
+        utf8.h)

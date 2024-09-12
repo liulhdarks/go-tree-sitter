@@ -1907,6 +1907,11 @@ TSTree *ts_parser_parse(
     self->end_clock = clock_null();
   }
 
+  time_t start, end;
+  double diff;
+  time(&start);
+
+  uint32_t loop_count = 0;
   uint32_t position = 0, last_position = 0, version_count = 0;
   do {
     for (
@@ -1948,6 +1953,16 @@ TSTree *ts_parser_parse(
         self->included_range_difference_index++;
       } else {
         break;
+      }
+    }
+
+    loop_count++;
+    if (loop_count % 50000 == 0) {
+      time(&end);
+      diff = difftime(end, start);
+      if (diff >= 2) {
+        ts_parser_reset(self);
+        return NULL;
       }
     }
   } while (version_count != 0);
