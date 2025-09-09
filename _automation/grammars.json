@@ -143,8 +143,9 @@
       "parser.c",
       "scanner.c"
     ],
-    "reference": "main",
-    "revision": "cce9073807c6c1da81ce658d683fdac2878e5b57"
+    "reference": "0.3.8",
+    "revision": "e1a2d5ad1f61f5740677183cd4125bb071cd2f30",
+    "updateBasedOn": "tag"
   },
   {
     "language": "lua",
