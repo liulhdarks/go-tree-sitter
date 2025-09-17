@@ -1,9 +1,9 @@
+#include "../alloc.h"
 #include "parser.h"
 
 #include <assert.h>
 #include <string.h>
 #include <wctype.h>
-
 
 enum TokenType { RAW_STRING_DELIMITER, RAW_STRING_CONTENT };
 
@@ -41,8 +41,8 @@ static bool scan_raw_string_delimiter(Scanner *scanner, TSLexer *lexer) {
     // Opening delimiter: record the d-char-sequence up to (.
     // d-char is any basic character except parens, backslashes, and spaces.
     for (;;) {
-        if (scanner->delimiter_length >= MAX_DELIMITER_LENGTH || lexer->eof(lexer) ||
-            lexer->lookahead == '\\' || iswspace(lexer->lookahead)) {
+        if (scanner->delimiter_length >= MAX_DELIMITER_LENGTH || lexer->eof(lexer) || lexer->lookahead == '\\' ||
+            iswspace(lexer->lookahead)) {
             return false;
         }
         if (lexer->lookahead == '(') {
@@ -93,55 +93,56 @@ static bool scan_raw_string_content(Scanner *scanner, TSLexer *lexer) {
         advance(lexer);
     }
 }
-extern "C" {
 
-    void *tree_sitter_cpp_external_scanner_create() {
-        Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
-        memset(scanner, 0, sizeof(Scanner));
-        return scanner;
-    }
+void *tree_sitter_cpp_external_scanner_create() {
+    Scanner *scanner = (Scanner *)ts_calloc(1, sizeof(Scanner));
+    memset(scanner, 0, sizeof(Scanner));
+    return scanner;
+}
 
-    bool tree_sitter_cpp_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
-        Scanner *scanner = (Scanner *)payload;
+bool tree_sitter_cpp_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
+    Scanner *scanner = (Scanner *)payload;
 
-        if (valid_symbols[RAW_STRING_DELIMITER] && valid_symbols[RAW_STRING_CONTENT]) {
-            // we're in error recovery
-            return false;
-        }
-
-        // No skipping leading whitespace: raw-string grammar is space-sensitive.
-        if (valid_symbols[RAW_STRING_DELIMITER]) {
-            lexer->result_symbol = RAW_STRING_DELIMITER;
-            return scan_raw_string_delimiter(scanner, lexer);
-        }
-
-        if (valid_symbols[RAW_STRING_CONTENT]) {
-            lexer->result_symbol = RAW_STRING_CONTENT;
-            return scan_raw_string_content(scanner, lexer);
-        }
-
+    if (valid_symbols[RAW_STRING_DELIMITER] && valid_symbols[RAW_STRING_CONTENT]) {
+        // we're in error recovery
         return false;
     }
 
-    unsigned tree_sitter_cpp_external_scanner_serialize(void *payload, char *buffer) {
-        assert(MAX_DELIMITER_LENGTH * sizeof(wchar_t) < TREE_SITTER_SERIALIZATION_BUFFER_SIZE && "Serialized delimiter is too long!");
-
-        Scanner *scanner = (Scanner *)payload;
-        size_t size = scanner->delimiter_length * sizeof(wchar_t);
-        memcpy(buffer, scanner->delimiter, size);
-        return (unsigned)size;
+    // No skipping leading whitespace: raw-string grammar is space-sensitive.
+    if (valid_symbols[RAW_STRING_DELIMITER]) {
+        lexer->result_symbol = RAW_STRING_DELIMITER;
+        return scan_raw_string_delimiter(scanner, lexer);
     }
 
-    void tree_sitter_cpp_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
-        assert(length % sizeof(wchar_t) == 0 && "Can't decode serialized delimiter!");
+    if (valid_symbols[RAW_STRING_CONTENT]) {
+        lexer->result_symbol = RAW_STRING_CONTENT;
+        return scan_raw_string_content(scanner, lexer);
+    }
 
-        Scanner *scanner = (Scanner *)payload;
-        scanner->delimiter_length = length / sizeof(wchar_t);
+    return false;
+}
+
+unsigned tree_sitter_cpp_external_scanner_serialize(void *payload, char *buffer) {
+    static_assert(MAX_DELIMITER_LENGTH * sizeof(wchar_t) < TREE_SITTER_SERIALIZATION_BUFFER_SIZE,
+                  "Serialized delimiter is too long!");
+
+    Scanner *scanner = (Scanner *)payload;
+    size_t size = scanner->delimiter_length * sizeof(wchar_t);
+    memcpy(buffer, scanner->delimiter, size);
+    return (unsigned)size;
+}
+
+void tree_sitter_cpp_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
+    assert(length % sizeof(wchar_t) == 0 && "Can't decode serialized delimiter!");
+
+    Scanner *scanner = (Scanner *)payload;
+    scanner->delimiter_length = length / sizeof(wchar_t);
+    if (length > 0) {
         memcpy(&scanner->delimiter[0], buffer, length);
     }
+}
 
-    void tree_sitter_cpp_external_scanner_destroy(void *payload) {
-        Scanner *scanner = (Scanner *)payload;
-        free(scanner);
-    }
+void tree_sitter_cpp_external_scanner_destroy(void *payload) {
+    Scanner *scanner = (Scanner *)payload;
+    ts_free(scanner);
 }
