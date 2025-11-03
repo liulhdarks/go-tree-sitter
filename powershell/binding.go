@@ -1,8 +1,8 @@
 package powershell
 
 // #cgo CFLAGS: -std=c11 -fPIC
-// #include "parser.c"
-// #include "scanner.c"
+// #include "parser.h"
+// TSLanguage *tree_sitter_powershell();
 import "C"
 
 import "unsafe"
