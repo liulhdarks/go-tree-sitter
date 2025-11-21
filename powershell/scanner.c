@@ -26,20 +26,19 @@ static void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
 
 static bool scan_statement_terminator(void *payload, TSLexer *lexer, const bool *valid_symbols)
 {
-    if (valid_symbols[STATEMENT_TERMINATOR]) {
-        lexer->result_symbol = STATEMENT_TERMINATOR;
-        // This token has no characters -- everything is lookahead to determine its existence
-        lexer->mark_end(lexer);
+    lexer->result_symbol = STATEMENT_TERMINATOR;
 
-        for (;;) {
-            if (lexer->lookahead == 0) return true;
-            if (lexer->lookahead == '}') return true;
-            if (lexer->lookahead == ';') return true;
-            if (lexer->lookahead == ')') return true;
-            if (lexer->lookahead == '\n') return true;
-            if (!iswspace(lexer->lookahead)) return false;
-            skip(lexer);
-        }
+    // This token has no characters -- everything is lookahead to determine its existence
+    lexer->mark_end(lexer);
+
+    for (;;) {
+        if (lexer->lookahead == 0) return true;
+        if (lexer->lookahead == '}') return true;
+        if (lexer->lookahead == ';') return true;
+        if (lexer->lookahead == ')') return true;
+        if (lexer->lookahead == '\n') return true;
+        if (!iswspace(lexer->lookahead)) return false;
+        skip(lexer);
     }
 
     return false;
